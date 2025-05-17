@@ -1,6 +1,5 @@
 import { Button } from "../components/ui/button";
 import Link from "next/link";
-import { products } from "../lib/products";
 import {
   ArrowRight,
   ChevronRight,
@@ -10,8 +9,8 @@ import {
   ShoppingBag,
   CircleDollarSign,
 } from "lucide-react";
+import { getProducts } from "../lib/api";
 
-const featuredProducts = products.filter((p) => p.featured);
 const categories = [
   { name: "Audio", icon: "🎧", count: 12 },
   { name: "Wearables", icon: "⌚", count: 8 },
@@ -19,7 +18,13 @@ const categories = [
   { name: "VR", icon: "🥽", count: 4 },
 ];
 
-export default function Home() {
+export default async function Home() {
+  // Fetch featured products from the API
+  const { products } = await getProducts({ limit: 8 });
+
+  // For featured products, we'll take the first 4 items
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <div className="space-y-20">
       {/* Hero Section */}
@@ -164,15 +169,16 @@ export default function Home() {
             <Link href={`/products/${product.id}`} key={product.id}>
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col hover:shadow-md transition-shadow group">
                 <div className="relative">
-                  {product.featured && (
-                    <span className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-md">
-                      Featured
-                    </span>
-                  )}
+                  <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-md">
+                    Featured
+                  </div>
                   <div className="aspect-square overflow-hidden">
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={
+                        product.images?.[0]?.url ||
+                        "https://random-image-pepebigotes.vercel.app/api/random-image"
+                      }
+                      alt={product.images?.[0]?.alt || product.name}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
@@ -181,11 +187,14 @@ export default function Home() {
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="flex items-center mb-1">
                     <div className="flex text-yellow-400">
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <Star className="h-3.5 w-3.5 fill-current" />
-                      <Star className="h-3.5 w-3.5" />
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-3.5 w-3.5 ${
+                            i < Math.floor(product.rating) ? "fill-current" : ""
+                          }`}
+                        />
+                      ))}
                     </div>
                     <span className="text-xs text-gray-500 ml-1">
                       {product.rating}
@@ -202,7 +211,7 @@ export default function Home() {
 
                   <div className="mt-auto flex items-center justify-between">
                     <span className="text-lg font-bold text-primary">
-                      ${product.price}
+                      ${product.price.toFixed(2)}
                     </span>
 
                     <Button variant="outline" size="sm" className="rounded-lg">
