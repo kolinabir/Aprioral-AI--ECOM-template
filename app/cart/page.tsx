@@ -1,26 +1,18 @@
 import Link from "next/link";
 import { Button } from "../../components/ui/button";
+import { products } from "../../lib/products";
 
 const cartItems = [
-  {
-    id: 1,
-    name: "Wireless Headphones",
-    price: 99,
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80",
-    quantity: 1,
-  },
-  {
-    id: 3,
-    name: "Bluetooth Speaker",
-    price: 59,
-    image:
-      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-    quantity: 2,
-  },
+  { id: 1, quantity: 1 },
+  { id: 3, quantity: 2 },
 ];
 
-const total = cartItems.reduce(
+const cartDetails = cartItems.map((item) => {
+  const product = products.find((p) => p.id === item.id)!;
+  return { ...product, quantity: item.quantity };
+});
+
+const total = cartDetails.reduce(
   (sum, item) => sum + item.price * item.quantity,
   0
 );
@@ -29,19 +21,19 @@ export default function CartPage() {
   return (
     <div className="py-12 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center">Your Cart</h1>
-      {cartItems.length === 0 ? (
+      {cartDetails.length === 0 ? (
         <div className="text-center text-gray-500">Your cart is empty.</div>
       ) : (
         <div className="space-y-6">
-          {cartItems.map((item) => (
+          {cartDetails.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-6 bg-white rounded-lg shadow p-4"
+              className="flex items-center gap-6 bg-white rounded-xl shadow p-4 border"
             >
               <img
                 src={item.image}
                 alt={item.name}
-                className="w-20 h-20 object-cover rounded"
+                className="w-20 h-20 object-cover rounded border"
               />
               <div className="flex-1">
                 <div className="font-medium text-lg">{item.name}</div>
@@ -52,8 +44,9 @@ export default function CartPage() {
               </div>
             </div>
           ))}
-          <div className="flex justify-between items-center mt-8">
-            <div className="text-xl font-bold">Total: ${total}</div>
+          <div className="flex justify-between items-center mt-8 bg-gray-50 rounded-xl p-4 border">
+            <div className="text-xl font-bold">Total:</div>
+            <div className="text-2xl font-extrabold text-primary">${total}</div>
             <Link href="/orders">
               <Button size="lg">Proceed to Order</Button>
             </Link>
